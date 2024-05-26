@@ -21,7 +21,7 @@ RUN mim install mmengine mmcv
 
 # Install MMAction2
 RUN conda clean --all
-RUN git clone https://github.com/open-mmlab/mmaction2.git /mmaction2
+RUN git clone https://github.com/grayson1999/TSNAccidentAnalysis.git /mmaction2
 WORKDIR /mmaction2
 RUN mkdir -p /mmaction2/data
 ENV FORCE_CUDA="1"

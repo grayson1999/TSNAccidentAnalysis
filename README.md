@@ -93,7 +93,7 @@ Docker 이미지
     [AI-Hub](https://www.aihub.or.kr/devsport/apishell/list.do?currMenu=403&topMenu=100)
     
     ```bash
-    export AIHUB_ID=bbt1250912@gmail.com
+    export AIHUB_ID=''
     export AIHUB_PW=''
     aihubshell -mode d -datasetkey 597 -filekey 509338
     ```
@@ -375,3 +375,4 @@ for result in results:
 | 버전       | 날짜      | 변경 내용                                |
 |------------|-------------|------------------------------------------|
 |ver 1.0|24.05.26|video-swin-transformer를 이용해 과실 측정 모델 제작|
+|ver 1.1|24.05.26|docker file 수정|
