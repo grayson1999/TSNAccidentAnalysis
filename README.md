@@ -60,14 +60,12 @@ pip install numpy==1.19.0
 ```
 
 Docker 이미지
-
-- docker 파일 수정
-    
+- 버전 수정
     ```bash
-    ## 코드 추가
-    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC 
+    ARG PYTORCH="1.6.0"
+    ARG CUDA="10.1"
+    ARG CUDNN="7"
     ```
-    
 - **Important:** Make sure you've installed the [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker).
 - docker 빌드
     

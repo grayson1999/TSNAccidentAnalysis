@@ -1,8 +1,10 @@
-ARG PYTORCH="1.8.1"
-ARG CUDA="10.2"
+ARG PYTORCH="1.6.0"
+ARG CUDA="10.1"
 ARG CUDNN="7"
 
 FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC 
 
 ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
@@ -25,6 +27,6 @@ RUN git clone https://github.com/grayson1999/TSNAccidentAnalysis.git /mmaction2
 WORKDIR /mmaction2
 RUN mkdir -p /mmaction2/data
 ENV FORCE_CUDA="1"
-RUN git checkout main
+RUN git checkout master
 RUN pip install cython --no-cache-dir
 RUN pip install --no-cache-dir -e .
