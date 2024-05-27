@@ -33,10 +33,10 @@ cfg.model.cls_head.num_classes = 434
 
 # 사전 학습된 TSN 모델을 사용합니다.
 ##이어서 학습
-cfg.load_from = '/mmaction2/grayson/work_space/best_acc_top1_epoch_8.pth'
+cfg.load_from = '/mmaction2/grayson/best_model_0522/best_model_0522.pth'
 
 # 파일과 로그를 저장할 작업 디렉토리를 설정합니다.
-cfg.work_dir = './work_space_2'
+cfg.work_dir = './best_model_0527'
 
 # 원래 학습률(LR)은 8-GPU 학습을 위해 설정되어 있습니다.
 # 우리는 1개의 GPU만 사용하기 때문에 8로 나눕니다.

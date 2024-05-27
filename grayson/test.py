@@ -2,11 +2,11 @@ from mmaction.apis import inference_recognizer, init_recognizer
 from mmengine import Config
 
 # 설정 파일을 선택하고 인식기를 초기화합니다.
-config = './work_space_2/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py'
+config = './best_model/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py'
 config = Config.fromfile(config)
 
 # 로드할 체크포인트 파일을 설정합니다.
-checkpoint = './work_space_2/best_acc_top1_epoch_13.pth'
+checkpoint = './best_model/best_model_0527.pth'
 
 # 인식기를 초기화합니다.
 model = init_recognizer(config, checkpoint, device='cuda:0')
@@ -15,6 +15,7 @@ model = init_recognizer(config, checkpoint, device='cuda:0')
 from operator import itemgetter
 
 test_count = 0
+test5_count = 0
 total_count = 0
 with open("../data/custom_test_mp4.txt", 'r', encoding='utf-8') as file:
     lines = file.readlines()
@@ -26,7 +27,7 @@ with open("../data/custom_test_mp4.txt", 'r', encoding='utf-8') as file:
         # 예측할 비디오 파일 경로
         video = '../data/test/'+video_name
         # 라벨 파일 경로
-        label = './index_map.txt'
+        label = './files/index_map.txt'
 
         # 비디오에 대한 인식 결과를 얻습니다.
         results = inference_recognizer(model, video)
@@ -48,10 +49,18 @@ with open("../data/custom_test_mp4.txt", 'r', encoding='utf-8') as file:
         # 상위 5개 라벨과 점수를 매핑합니다.
         results = [(labels[k[0]], k[1]) for k in top5_label]
 
-        # 상위 1개 가져오기
+        # 정답 lable
         print("정답 :"+video_label)
-        print(f'{results[0][0]}: ', results[0][1])
-
+        
+        ##상위 5개 
+        for result in results:
+            print(f'{result[0]}:',result[1])
+            if int(video_label) == int(result[0]):
+                test5_count += 1
+        #상위 1개
         if int(results[0][0]) == int(video_label):
             test_count += 1
-print("{}|{} - {}%".format(test_count,total_count,test_count/total_count*100))
+        
+        print("top1: {}|top5: {}".format(test_count,test5_count))
+print("top_1: {}|{} - {}%".format(test_count,total_count,test_count/total_count*100))
+print("top_5: {}|{} - {}%".format(test5_count,total_count,test5_count/total_count*100))
