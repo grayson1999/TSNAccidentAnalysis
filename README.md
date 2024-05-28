@@ -376,3 +376,4 @@ for result in results:
 |ver 1.0|24.05.26|video-swin-transformer를 이용해 과실 측정 모델 제작|
 |ver 1.1|24.05.26|docker file 수정|
 |ver 1.2|24.05.26|test top5 섹션 추가, 모델 명 변경|
+|ver 1.3|24.05.28|otuna 하이퍼파라미터 최적화 알고리즘 작성|
