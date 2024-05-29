@@ -6,29 +6,12 @@ from mmengine.runner import Runner
 
 # Optuna의 objective 함수를 정의합니다.
 def objective(trial):
-    # # 설정 파일을 불러옵니다.
-    # cfg = Config.fromfile('/AccidentFaultAI/model/TSN/best_model_0527/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
-
-    # # 데이터셋 타입과 경로를 수정합니다.
-    # cfg.data_root = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/train/'
-    # cfg.data_root_val = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'
-    # cfg.ann_file_train = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_train_mp4.txt'
-    # cfg.ann_file_val = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
-    
-    # # 테스트 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    # cfg.test_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
-    # cfg.test_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'
-
-    # # 훈련 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    # cfg.train_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_train_mp4.txt'
-    # cfg.train_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/train/'
-
-    # # 검증 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    # cfg.val_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
-    # cfg.val_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'
+    # 하이퍼파라미터 최적화: 학습률 및 배치 크기
+    lr = trial.suggest_loguniform('lr', 1e-6, 1e-2)
+    batch_size = trial.suggest_categorical('batch_size', [4, 8, 16, 32])
 
     # 설정 파일 로드 및 수정
-    cfg = Config.fromfile('../configs/recognition/tsn/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
+    cfg = Config.fromfile('./best_model_0527/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
     cfg.optim_wrapper.optimizer.lr = lr
     cfg.train_dataloader.batch_size = batch_size
     
@@ -48,15 +31,12 @@ def objective(trial):
     cfg.model.cls_head.num_classes = 434
 
     # 사전 학습된 TSN 모델을 사용합니다.
-    # cfg.load_from = '/AccidentFaultAI/model/TSN/best_model_0527/best_model_0527.pth'
+    cfg.load_from = './best_model_0527/best_acc_top1_epoch_15.pth'
 
     # 파일과 로그를 저장할 작업 디렉토리를 설정합니다.
     cfg.work_dir = './best_model'
 
-    # 하이퍼파라미터 최적화: 학습률 및 배치 크기
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-2)
-    batch_size = trial.suggest_categorical('batch_size', [4, 8, 16, 32])
-
+    # 하이퍼파라미터를 설정합니다.
     cfg.optim_wrapper.optimizer.lr = lr
     cfg.train_dataloader.batch_size = batch_size
     cfg.val_dataloader.batch_size = batch_size
@@ -87,7 +67,7 @@ def objective(trial):
     top5_acc = validation_results.get('top5_acc', 0)
     mean_acc = validation_results.get('mean_acc', 0)
     memory = validation_results.get('memory', 0)
-    print(top1_acc,top5_acc,mean_acc,memory)
+    print(top1_acc, top5_acc, mean_acc, memory)
 
     # 최적화 목표를 top1_acc로 설정합니다.
     return top1_acc
@@ -99,3 +79,25 @@ study.optimize(objective, n_trials=50)
 # 최적의 하이퍼파라미터 출력
 print(f"Best hyperparameters: {study.best_params}")
 print(f"Best validation accuracy (top1_acc): {study.best_value}")
+
+
+    # # 설정 파일을 불러옵니다.
+    # cfg = Config.fromfile('/AccidentFaultAI/model/TSN/best_model_0527/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
+
+    # # 데이터셋 타입과 경로를 수정합니다.
+    # cfg.data_root = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/train/'
+    # cfg.data_root_val = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'
+    # cfg.ann_file_train = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_train_mp4.txt'
+    # cfg.ann_file_val = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
+    
+    # # 테스트 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
+    # cfg.test_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
+    # cfg.test_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'
+
+    # # 훈련 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
+    # cfg.train_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_train_mp4.txt'
+    # cfg.train_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/train/'
+
+    # # 검증 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
+    # cfg.val_dataloader.dataset.ann_file = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/custom_val_mp4.txt'
+    # cfg.val_dataloader.dataset.data_prefix.video = '/AccidentFaultAI/datasets/data/video_datasets/download_datas/val/'

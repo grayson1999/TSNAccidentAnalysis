@@ -2,11 +2,11 @@ from mmaction.apis import inference_recognizer, init_recognizer
 from mmengine import Config
 
 # 설정 파일을 선택하고 인식기를 초기화합니다.
-config = './best_model/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py'
+config = './best_model_0529/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py'
 config = Config.fromfile(config)
 
 # 로드할 체크포인트 파일을 설정합니다.
-checkpoint = './best_model/best_model_0527.pth'
+checkpoint = './best_model_0529/best_model_0529.pth'
 
 # 인식기를 초기화합니다.
 model = init_recognizer(config, checkpoint, device='cuda:0')
@@ -50,11 +50,11 @@ with open("../data/custom_test_mp4.txt", 'r', encoding='utf-8') as file:
         results = [(labels[k[0]], k[1]) for k in top5_label]
 
         # 정답 lable
-        print("정답 :"+video_label)
+        # print("정답 :"+video_label)
         
         ##상위 5개 
         for result in results:
-            print(f'{result[0]}:',result[1])
+            # print(f'{result[0]}:',result[1])
             if int(video_label) == int(result[0]):
                 test5_count += 1
         #상위 1개
