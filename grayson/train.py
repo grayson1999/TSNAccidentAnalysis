@@ -6,7 +6,7 @@ from mmengine import Config
 from mmengine.runner import set_random_seed
 
 # 설정 파일을 불러옵니다.
-cfg = Config.fromfile('../configs/recognition/tsn/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
+cfg = Config.fromfile('/mmaction2/grayson/best_model_0529/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
 
 # 데이터셋 타입과 경로를 수정합니다.
 
@@ -33,10 +33,10 @@ cfg.model.cls_head.num_classes = 434
 
 # 사전 학습된 TSN 모델을 사용합니다.
 ##이어서 학습
-cfg.load_from = '/mmaction2/grayson/best_model_0522/best_model_0522.pth'
+cfg.load_from = '/mmaction2/grayson/best_model_0529/best_model_0529.pth'
 
 # 파일과 로그를 저장할 작업 디렉토리를 설정합니다.
-cfg.work_dir = './best_model_0527'
+cfg.work_dir = './best_model_0530'
 
 # 원래 학습률(LR)은 8-GPU 학습을 위해 설정되어 있습니다.
 # 우리는 1개의 GPU만 사용하기 때문에 8로 나눕니다.
