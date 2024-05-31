@@ -11,7 +11,7 @@ def objective(trial):
     batch_size = trial.suggest_categorical('batch_size', [4, 8, 16, 32])
 
     # 설정 파일 로드 및 수정
-    cfg = Config.fromfile('./best_model_0527/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
+    cfg = Config.fromfile('/mmaction2/grayson/best_model_0529/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
     cfg.optim_wrapper.optimizer.lr = lr
     cfg.train_dataloader.batch_size = batch_size
     
@@ -31,7 +31,7 @@ def objective(trial):
     cfg.model.cls_head.num_classes = 434
 
     # 사전 학습된 TSN 모델을 사용합니다.
-    cfg.load_from = './best_model_0527/best_acc_top1_epoch_15.pth'
+    cfg.load_from = './best_model_0529/best_model_0529.pth'
 
     # 파일과 로그를 저장할 작업 디렉토리를 설정합니다.
     cfg.work_dir = './best_model'
@@ -43,8 +43,10 @@ def objective(trial):
 
     # 원래 학습률(LR)은 8-GPU 학습을 위해 설정되어 있습니다.
     # 우리는 1개의 GPU만 사용하기 때문에 8로 나눕니다.
-    cfg.optim_wrapper.optimizer.lr = cfg.optim_wrapper.optimizer.lr / 8
-    cfg.train_cfg.max_epochs = 20
+    cfg.train_dataloader.batch_size = cfg.train_dataloader.batch_size // 16
+    cfg.val_dataloader.batch_size = cfg.val_dataloader.batch_size // 16
+    cfg.optim_wrapper.optimizer.lr = cfg.optim_wrapper.optimizer.lr / 8 / 16
+    cfg.train_cfg.max_epochs = 15
 
     # 데이터 로더의 작업자 수를 설정합니다.
     cfg.train_dataloader.num_workers = 1
