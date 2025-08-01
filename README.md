@@ -1,383 +1,70 @@
-해당 프로그램은 [Video-Swin-Transformer](https://github.com/SwinTransformer/Video-Swin-Transformer)를 참고하여 제작했습니다.
+# TSN과 YOLO를 활용한 교통사고 영상 분석 및 예측 모델
 
-## TSN (Temporal Segment Networks)
+> 본 프로젝트는 딥러닝 영상 인식 프레임워크인 mmaction2를 기반으로, 교통사고 영상의 패턴을 분석하고 사고 유형을 예측하는 모델을 개발하는 것을 목표로 합니다. 특히, Temporal Segment Network(TSN) 모델을 핵심으로 사용하며, YOLOv8 객체 탐지 모델과의 연동 및 Optuna를 이용한 하이퍼파라미터 최적화를 통해 성능을 개선했습니다.
 
-<aside>
-💡 비디오를 여러 세그먼트로 나누어 각 세그먼트의 특징을 추출한 후 통합하여 행동 인식을 수행하는 딥러닝 모델
-이 방식은 비디오의 시간적, 공간적 정보를 효과적으로 활용하여 높은 인식 성능을 제공
-</aside>
-<br>
+---
 
-자세한 내용은 
-[GitHub - SwinTransformer/Video-Swin-Transformer: This is an official implementation for "Video Swin Transformers](https://github.com/SwinTransformer/Video-Swin-Transformer)
-을 참조하세요
+##  목차
 
+1.  [프로젝트 개요](#1-프로젝트-개요)
+2.  [나의 역할 및 기여](#2-나의-역할-및-기여)
+3.  [사용 기술 스택](#3-사용-기술-스택)
+4.  [구현 및 결과](#4-구현-및-결과)
+    - [모델 아키텍처](#41-모델-아키텍처)
+    - [성능 평가](#42-성능-평가)
+5.  [배운 점 및 차별화 포인트](#5-배운-점-및-차별화-포인트)
 
-### 목차
-1. [목적](#목적)
-2. [모델](#모델)
-3. [환경 설정](#환경-설정) 
-4. [DATA SET](#data-set) 
-5. [Model 학습 방법](#model-학습-방법) 
-6. [tester(테스터기)](#tester테스터기) 
-7. [recognizor(추론기)](#recognizor추론기) 
+---
 
+## 1. 프로젝트 개요
 
-### 목적
-<aside>
-434가지의 사고 유형을 인식하여 비디오를 학습하고, 주어진 비디오에서 가장 유사한 사고 유형을 탐지하는 것
-</aside>
+교통사고 영상은 복잡하고 동적인 정보를 담고 있어 정확한 상황 인식이 어렵습니다. 이 프로젝트는 TSN 모델을 활용하여 영상의 시간적 특징을 효과적으로 학습하고, 사고 유형을 분류하는 딥러닝 모델을 개발합니다. 또한, YOLOv8 모델을 전처리 단계에 통합하여 영상 내 주요 객체(차량 등)에 집중함으로써 모델의 인식 정확도를 높이는 2-stage 접근법을 실험하고, Optuna를 통해 최적의 학습 조건을 탐색하여 모델의 성능을 최종적으로 검증합니다.
 
-### 모델
-| 모델 이름             | 정확도(top1) | 정확도(top5) | 평균 정확도(mean1) | 로스   | 메모리 |
-|----------------------|--------------|--------------|--------------------|--------|--------|
-| best_model_0522 | 0.2061   | 0.3876       | 0.29685          | 3.6529 | 353 MB |
-| best_model_0527 | 0.2304   | 0.4683       |  0.34935         | 3.4279 | 353 MB |
-| best_model_0529 | 0.2056   | 0.4503       | 0.0364          | 3.4289 | 353 MB |
-| best_model_0531 | 0.1857   | 0.4206       | 0.0333          | 0.3735 | 320 MB |
+## 2. 나의 역할 및 기여
 
+본 프로젝트에서 다음과 같은 핵심적인 역할을 수행했습니다.
 
-### 환경 설정
+-   **TSN 모델 커스터마이징 및 학습 파이프라인 구축**: `mmaction2` 프레임워크를 활용하여 교통사고 데이터셋에 맞는 TSN 모델의 학습, 검증, 테스트 파이프라인(`train.py`, `test.py`)을 처음부터 구축했습니다.
+-   **YOLOv8 기반 2-Stage 모델 설계**: 영상 전체가 아닌, 사고와 직접적으로 관련된 객체에 모델이 집중할 수 있도록 YOLOv8로 객체를 탐지하고 해당 영역을 Crop하여 TSN 모델에 입력하는 2-Stage 아키텍처(`yolo_tsn_model`)를 설계하고 구현했습니다.
+-   **Optuna를 이용한 하이퍼파라미터 최적화**: `Optuna` 라이브러리를 도입하여 학습률(learning rate), 옵티마이저(optimizer) 등 주요 하이퍼파라미터를 자동적이고 체계적으로 튜닝하는 프로세스(`otuna_train.py`)를 구현하여 모델의 잠재 성능을 극대화했습니다.
+-   **성과 중심의 실험 설계 및 분석**: Top-1/Top-5 정확도, 코사인 유사도 등 다양한 평가지표를 설정하고, 모델 버전별 성능을 체계적으로 비교 분석하여 각 요소 기술의 기여도를 정량적으로 평가하고 최적의 모델을 선정했습니다.
 
-mmaction2 설치 가이드
+## 3. 사용 기술 스택
 
-[Installation — MMAction2 1.2.0 documentation](https://mmaction2.readthedocs.io/en/latest/get_started/installation.html)
+-   **Frameworks & Libraries**: `PyTorch`, `mmaction2`, `MMCV`, `ultralytics (YOLOv8)`, `Optuna`
+-   **Data Handling**: `Pandas`, `NumPy`
+-   **Visualization**: `Seaborn`, `Matplotlib`
+-   **Language**: `Python`
+-   **DevOps**: `Git`
 
-torch+torchvision 설치 방법
+## 4. 구현 및 결과
 
-```bash
-##torch+torchvision
-pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
-##mmcv 설치
-pip install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.8.0/index.html
+### 4.1. 모델 아키텍처
 
-##추가 모듈 설치
-pip install opencv-python
-pip install timm
-pip install scipy
-pip install einops
+본 프로젝트에서는 두 가지 주요 모델 아키텍처를 실험하고 비교했습니다.
 
-##오류 대응
-pip install numpy==1.19.0
-```
+1.  **Single TSN Model**: 원본 영상을 직접 TSN 모델에 입력하여 영상 전체의 시간적 특징을 학습하는 기본 모델입니다.
+2.  **YOLO-TSN Model**: YOLOv8이 영상에서 주요 객체(차량 등)를 먼저 탐지하고, 해당 객체의 Bounding Box를 기준으로 이미지를 Crop합니다. 이후 Crop된 이미지 시퀀스를 TSN 모델의 입력으로 사용하여, 불필요한 배경 정보를 제거하고 핵심 정보에 집중하도록 설계된 2-Stage 모델입니다.
 
-Docker 이미지
-- 버전 수정
-    ```bash
-    ARG PYTORCH="1.6.0"
-    ARG CUDA="10.1"
-    ARG CUDNN="7"
-    ```
-- **Important:** Make sure you've installed the [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker).
-- docker 빌드
-    
-    ```bash
-    # build an image with PyTorch 1.6.0, CUDA 10.1, CUDNN 7.
-    docker build -f ./docker/Dockerfile --rm -t mmaction2 .
-    
-    # docker run --gpus all --shm-size=8g -it -v {DATA_DIR}:/mmaction2/data mmaction2
-    docker run --gpus all --shm-size=8g -it -v G:/video_datasets/download_datas:/mmaction2/data mmaction2
-    
-    pip install mmcv==2.1.0
-    pip install -r requirements/build.txt
-    python setup.py develop
-    
-    apt-get update
-    apt-get install wget
-    ```
-    
+### 4.2. 성능 평가
 
-### DATA SET
+다양한 조건에서 학습된 모델들의 성능을 종합적으로 평가한 결과는 다음과 같습니다.
 
-- download
-    
-    [AI-Hub](https://www.aihub.or.kr/devsport/apishell/list.do?currMenu=403&topMenu=100)
-    
-    ```bash
-    export AIHUB_ID=''
-    export AIHUB_PW=''
-    aihubshell -mode d -datasetkey 597 -filekey 509338
-    ```
-        
+| 모델 (Model)                          | Top-1 Acc. (%) | Top-5 Acc. (%) | Rate Acc. (%) | ±10% Error Rate Acc. (%) | 평균 코사인 유사도 |
+| ------------------------------------- | :------------: | :------------: | :-----------: | :----------------------: | :----------------: |
+| `single_tsn_model` (best_model_0522)  |      20.6      |      29.9      |       ·       |            ·             |         ·          |
+| `single_tsn_model` (best_model_0527)  |      23.0      |      46.8      |     32.0      |            ·             |         ·          |
+| `yolo_tsn_model` (best_model_0527)    |      22.1      |      47.2      |     31.8      |            ·             |         ·          |
+| **`single_tsn_model` (best_model_0529)** |   **24.67**    |   **48.90**    |   **33.50**   |        **46.83**         |     **81.54**      |
+| `yolo_tsn_model` (best_model_0529)    |     23.50      |     49.48      |     33.43     |          47.38           |       81.58        |
+| `single_tsn_model` (best_model_0531)  |     21.50      |     45.36      |     30.63     |          44.92           |         ·          |
 
-- 데이터 셋 구성 방법
-    
-    [https://github.com/SwinTransformer/Video-Swin-Transformer/blob/master/docs/tutorials/3_new_dataset.md](https://github.com/SwinTransformer/Video-Swin-Transformer/blob/master/docs/tutorials/3_new_dataset.md)
-    
-    - download 폴더 구성
-    
-    ```markdown
-    ### download 시                      ### anotation 변환
-    Root                                 Root
-    ├── origin                           ├── train
-    │   └── subfolder                    │    └── *.mp4
-    │       └── *.mp4                    ├── val
-    │                                    │    └── *.mp4 
-    └── label                            ├── test
-        └── subfolder                    │    └── *.mp4 
-    	    └── *.json                     ├── custom_train_mp4.txt
-    	                                   ├── custom_val_mp4.txt
-    	                                   └── custom_test_mp4.txt
-    ```
-    
-    - video_annotion 변환 방법
-        - 변환 방법
-            
-            ```bash
-            python {Download folder}/convert_video_annotation.py
-            ```
-            
-        - train :  val : test = 70 : 15 : 15 비율로 작성 함
-        - videodataset 방식의 annotation 진행
-    - annotation 형식
-        
-        ```
-        bb_1_210121_two-wheeled-vehicle_236_21840.mp4 206
-        bb_1_211031_two-wheeled-vehicle_241_21549.mp4 232
-        bb_1_210125_two-wheeled-vehicle_112_003.mp4 290
-        bb_1_210917_two-wheeled-vehicle_121_126.mp4 298
-        ...
-        ```
-        
+-   **최고 성능**: `best_model_0529` 버전의 **`single_tsn_model`** 이 Top-1 정확도(24.67%)를 포함한 대부분의 지표에서 가장 우수한 성능을 기록했습니다.
+-   **YOLO 연동 효과**: YOLO를 연동한 모델(`yolo_tsn_model`)은 Top-1 정확도는 소폭 하락했지만, Top-5 정확도와 코사인 유사도에서는 근소한 성능 향상을 보여주었습니다. 이는 모델이 핵심 객체에 집중하여 더 안정적인 예측을 생성할 가능성을 시사합니다.
 
-### Model 학습 방법
+## 5. 배운 점 및 차별화 포인트
 
-- tutorial
-    
-    [Google Colab Tutorial](https://colab.research.google.com/drive/1dLeCGfq3bQFpgtfU5WSPFlvkKsZCWsdo#scrollTo=VcjSRFELVbNk)
-    
-1. 사전 학습 된 TSN 가중치 다운로드(optional)
-    
-    ```bash
-    mkdir checkpoints
-    wget -c https://download.openmmlab.com/mmaction/recognition/tsn/tsn_r50_1x1x3_100e_kinetics400_rgb/tsn_r50_1x1x3_100e_kinetics400_rgb_20200614-e508be42.pth \
-          -O ./checkpoints/tsn_r50_1x1x3_100e_kinetics400_rgb_20200614-e508be42.pth
-    ```
-    
-2. config 수정 및 학습
-    
-    ```python
-    from mmengine import Config
-    import os.path as osp
-    import mmengine
-    from mmengine.runner import Runner
-    from mmengine import Config
-    from mmengine.runner import set_random_seed
-    
-    # 설정 파일을 불러옵니다.
-    cfg = Config.fromfile('../configs/recognition/tsn/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py')
-    
-    # 데이터셋 타입과 경로를 수정합니다.
-    cfg.data_root = '/mmaction2/data/train/'
-    cfg.data_root_val = '/mmaction2/data/val/'
-    cfg.ann_file_train = '/mmaction2/data/custom_train_mp4.txt'
-    cfg.ann_file_val = '/mmaction2/data/custom_val_mp4.txt'
-    
-    # 테스트 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    cfg.test_dataloader.dataset.ann_file = '/mmaction2/data/custom_val_mp4.txt'
-    cfg.test_dataloader.dataset.data_prefix.video = '/mmaction2/data/val/'
-    
-    # 훈련 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    cfg.train_dataloader.dataset.ann_file = '/mmaction2/data/custom_train_mp4.txt'
-    cfg.train_dataloader.dataset.data_prefix.video = '/mmaction2/data/train/'
-    
-    # 검증 데이터 로더의 데이터셋 주석 파일 및 데이터 경로를 수정합니다.
-    cfg.val_dataloader.dataset.ann_file = '/mmaction2/data/custom_val_mp4.txt'
-    cfg.val_dataloader.dataset.data_prefix.video = '/mmaction2/data/val/'
-    
-    # 모델의 클래스 수를 수정합니다.
-    cfg.model.cls_head.num_classes = 434
-    
-    # 사전 학습된 TSN 모델을 사용합니다.
-    ##이어서 학습
-    # cfg.load_from = './checkpoints/tsn_r50_1x1x3_100e_kinetics400_rgb_20200614-e508be42.pth'
-    
-    # 파일과 로그를 저장할 작업 디렉토리를 설정합니다.
-    cfg.work_dir = './work_space'
-    
-    # 원래 학습률(LR)은 8-GPU 학습을 위해 설정되어 있습니다.
-    # 우리는 1개의 GPU만 사용하기 때문에 8로 나눕니다.
-    cfg.train_dataloader.batch_size = cfg.train_dataloader.batch_size // 16
-    cfg.val_dataloader.batch_size = cfg.val_dataloader.batch_size // 16
-    cfg.optim_wrapper.optimizer.lr = cfg.optim_wrapper.optimizer.lr / 8 / 16
-    cfg.train_cfg.max_epochs = 50
-    
-    # 데이터 로더의 작업자 수를 설정합니다.
-    cfg.train_dataloader.num_workers = 2
-    cfg.val_dataloader.num_workers = 2
-    cfg.test_dataloader.num_workers = 2
-    
-    # 학습을 위한 로거를 초기화하고 최종 설정을 출력합니다.
-    print(f'Config:\n{cfg.pretty_text}')
-    
-    # 작업 디렉토리를 생성합니다.
-    mmengine.mkdir_or_exist(osp.abspath(cfg.work_dir))
-    
-    # 설정에서 러너를 빌드합니다.
-    runner = Runner.from_cfg(cfg)
-    
-    # 학습을 시작합니다.
-    runner.train()
-    
-    # 테스트를 실행합니다.
-    runner.test()
-    ```
-    
-
-### tester(테스터기)
-
-```python
-from mmaction.apis import inference_recognizer, init_recognizer
-from mmengine import Config
-
-# 설정 파일을 선택하고 인식기를 초기화합니다.
-config = './sample_work/tsn_imagenet-pretrained-r50_8xb32-1x1x3-100e_kinetics400-rgb.py'
-config = Config.fromfile(config)
-
-# 로드할 체크포인트 파일을 설정합니다.
-checkpoint = './sample_work/best_acc_top1_epoch_9.pth'
-
-# 인식기를 초기화합니다.
-model = init_recognizer(config, checkpoint, device='cuda:0')
-
-# 인식기를 사용하여 추론을 수행합니다.
-from operator import itemgetter
-
-test_count = 0
-total_count = 0
-with open("../data/custom_test_mp4.txt", 'r', encoding='utf-8') as file:
-    lines = file.readlines()
-    total_count = len(lines)
-
-    for line in lines:
-        video_name, video_label = line.split()
-
-        # 예측할 비디오 파일 경로
-        video = '../data/test/'+video_name
-        # 라벨 파일 경로
-        label = './index_map.txt'
-
-        # 비디오에 대한 인식 결과를 얻습니다.
-        results = inference_recognizer(model, video)
-
-        # 예측 점수를 리스트로 변환합니다.
-        pred_scores = results.pred_score.tolist()
-        # 예측 점수와 인덱스를 튜플로 묶습니다.
-        score_tuples = tuple(zip(range(len(pred_scores)), pred_scores))
-        # 점수를 기준으로 내림차순 정렬합니다.
-        score_sorted = sorted(score_tuples, key=itemgetter(1), reverse=True)
-        # 상위 5개의 라벨을 선택합니다.
-        top5_label = score_sorted[:5]
-
-        # 라벨 파일을 읽어옵니다.
-        labels = open(label).readlines()
-        # 라벨에서 공백 문자를 제거합니다.
-        labels = [x.strip() for x in labels]
-
-        # 상위 5개 라벨과 점수를 매핑합니다.
-        results = [(labels[k[0]], k[1]) for k in top5_label]
-
-        # 상위 1개 가져오기
-        print("정답 :"+video_label)
-        print(f'{results[0][0]}: ', results[0][1])
-
-        if int(results[0][0]) == int(video_label):
-            test_count += 1
-print("{}|{} - {}%".format(test_count,total_count,test_count/total_count*100))
-```
-
-### recognizor(추론기)
-
-1. config
-    - 학습 시 사용한 workspace에 생성되어 있는  config 파일 사용
-2. checkpoint 
-    - workspace에 생성 된 best 가중치 사용
-3. label
-    - 0~433, 총 434개의 숫자가 “\n”으로 분리된 파일로 /data 폴더에 같이 저장되어 있음
-
-```python
-from mmaction.apis import inference_recognizer, init_recognizer
-from mmengine import Config
-
-# 설정 파일을 선택하고 인식기를 초기화합니다.
-config = './sample_work/tsn_imagenet-pretrained-r50_8xb32-1x1x8-100e_kinetics400-rgb.py'
-config = Config.fromfile(config)
-
-# 로드할 체크포인트 파일을 설정합니다.
-checkpoint = './sample_work/best_acc_top1_epoch_8.pth'
-
-# 인식기를 초기화합니다.
-model = init_recognizer(config, checkpoint, device='cuda:0')
-
-# 인식기를 사용하여 추론을 수행합니다.
-from operator import itemgetter
-
-# 예측할 비디오 파일 경로
-video = './test2_175.mp4'
-# 라벨 파일 경로
-label = './index_map.txt'
-
-# 비디오에 대한 인식 결과를 얻습니다.
-results = inference_recognizer(model, video)
-
-# 예측 점수를 리스트로 변환합니다.
-pred_scores = results.pred_score.tolist()
-# 예측 점수와 인덱스를 튜플로 묶습니다.
-score_tuples = tuple(zip(range(len(pred_scores)), pred_scores))
-# 점수를 기준으로 내림차순 정렬합니다.
-score_sorted = sorted(score_tuples, key=itemgetter(1), reverse=True)
-# 상위 5개의 라벨을 선택합니다.
-top5_label = score_sorted[:5]
-
-# 라벨 파일을 읽어옵니다.
-labels = open(label).readlines()
-# 라벨에서 공백 문자를 제거합니다.
-labels = [x.strip() for x in labels]
-
-# 상위 5개 라벨과 점수를 매핑합니다.
-results = [(labels[k[0]], k[1]) for k in top5_label]
-
-# 상위 5개 라벨과 해당 점수를 출력합니다.
-print('The top-5 labels with corresponding scores are:')
-for result in results:
-    print(f'{result[0]}: ', result[1])
-```
-
-오류 모음
-
-1. GPG 에러
-    
-    ```bash
-    오류 내용:
-    GPG error: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64  InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY A4B469963BF863CC
-    해결 방법:
-    # NVIDIA CUDA 리포지토리의 공개 키 다운로드 및 추가
-    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC 
-    ```
-    
-    [GPG error: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64  InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY A4B469963BF863CC](https://better-tomorrow.tistory.com/entry/GPG-error-httpsdeveloperdownloadnvidiacomcomputecudareposubuntu1804x8664-InRelease-The-following-signatures-couldnt-be-verified-because-the-public-key-is-not-available-NOPUBKEY-A4B469963BF863CC)
-    
-2. numpy 버전 에러
-    
-    ```bash
-    ##오류 내용
-    AttributeError: module 'numpy' has no attribute 'int'.
-    `np.int` was a deprecated alias for the builtin `int`. To avoid this error in existing code, use `int` by itself. Doing this will not modify any behavior and is safe. When replacing `np.int`, you may wish to use e.g. `np.int64` or `np.int32` to specify the precision. If you wish to review your current use, check the release note link for additional information.
-    The aliases was originally deprecated in NumPy 1.20; for more details and guidance see the original release note at:
-        https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
-    ```
-    
-    ```bash
-    ##해결 방법
-    pip install numpy==1.19.0
-    ```
-
-### version
-| 버전       | 날짜      | 변경 내용                                |
-|------------|-------------|------------------------------------------|
-|ver 1.0|24.05.26|video-swin-transformer를 이용해 과실 측정 모델 제작|
-|ver 1.1|24.05.26|docker file 수정|
-|ver 1.2|24.05.26|test top5 섹션 추가, 모델 명 변경|
-|ver 1.3|24.05.28|otuna 하이퍼파라미터 최적화 알고리즘 작성|
-|ver 1.4|24.05.29|best_model_0529 모델 추가|
-|ver 1.5|24.05.31|best_model_0531 모델 추가|
+-   **프레임워크 활용 능력**: `mmaction2`와 같은 대규모 딥러닝 프레임워크의 구조를 이해하고, 특정 도메인(교통사고)에 맞게 커스터마이징하여 실제 문제를 해결하는 능력을 길렀습니다.
+-   **체계적인 성능 최적화**: 단순히 감에 의존하는 것이 아니라, `Optuna`와 같은 자동화된 튜닝 라이브러리를 활용하여 데이터 기반의 체계적인 하이퍼파라미터 최적화를 수행하고 성능을 개선한 경험을 쌓았습니다.
+-   **가설 기반 모델 설계 및 검증**: '객체에 집중하면 성능이 오를 것이다'라는 가설을 바탕으로 YOLO-TSN 2-Stage 모델을 직접 설계하고, 실험을 통해 가설을 정량적으로 검증하며 모델 아키텍처 설계 능력을 향상시켰습니다.
+-   **종합적인 결과 분석**: 단일 지표(예: Top-1 정확도)에 매몰되지 않고, 코사인 유사도 등 다양한 관점의 평가지표를 도입하여 모델의 성능을 다각적으로 해석하고 종합적인 결론을 도출하는 분석 능력을 갖추게 되었습니다.
